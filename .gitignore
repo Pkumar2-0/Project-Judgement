@@ -1,0 +1,50 @@
+# Node modules
+backend/node_modules/
+
+# Logs
+*.log
+logs/
+
+# Environment files
+backend/.env
+
+# Dependency directories
+backend/package-lock.json
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore local env files
+.env
+.env.*
+
+# Ignore coverage reports
+coverage/
+
+# Ignore build output (if any in the future)
+build/
+dist/
+
+# Ignore by IDEs
+.vscode/
+.idea/ 
+
+# Node modules
+frontend/node_modules/
+
+# Vite cache
+frontend/.vite/
+
+# Build output
+frontend/dist/
+
+# Environment files
+frontend/.env
+frontend/.env.*
+
+# Log files
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*

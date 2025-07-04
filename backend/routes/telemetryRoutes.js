@@ -32,12 +32,27 @@ const express = require('express');
 const router = express.Router();
 
 const { receiveTelemetry } = require('../controllers/telemetryController');
-const verifyToken = require('../middleware/verifyToken');
+const verifyToken = require('../middlewares/verifyToken');
 const { Telemetry } = require('../models'); // Import model to fetch data
 
 // POST /api/telemetry
 // Save telemetry data sent from drone
 router.post('/', verifyToken, receiveTelemetry);
+
+// GET /api/telemetry/drone-ids - Get all unique drone IDs
+router.get('/drone-ids', verifyToken, async (req, res) => {
+  try {
+    const droneIds = await Telemetry.findAll({
+      attributes: [
+        [require('sequelize').fn('DISTINCT', require('sequelize').col('droneId')), 'droneId']
+      ],
+      raw: true
+    });
+    res.json(droneIds.map(d => d.droneId));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch drone IDs' });
+  }
+});
 
 // GET /api/telemetry/:droneId - Get latest telemetry by drone ID
 router.get('/:droneId', verifyToken, async (req, res) => {
@@ -58,7 +73,6 @@ router.get('/:droneId', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch telemetry' });
   }
 });
-
 
 // Export router to use in server.js
 module.exports = router;
