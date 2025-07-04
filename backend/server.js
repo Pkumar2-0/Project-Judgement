@@ -6,23 +6,29 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// DB connection
 const sequelize = require('./config/db');
-
-// Routes (Week 1 only)
 const authRoutes = require('./routes/authRoutes');
 const telemetryRoutes = require('./routes/telemetryRoutes');
-
-// Swagger setup (if used)
+const privateRoutes = require('./routes/privateRoutes');
+const missionRoutes = require('./routes/missionRoutes');
+const alertRoutes = require('./routes/alertRoutes');
 const { swaggerUi, specs } = require('./swagger');
-
-// Error handler (if you’ve added one)
 const errorHandler = require('./middleware/errorHandler');
+const commandRoutes = require('./routes/commandRoutes');
 
-// Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/telemetry', telemetryRoutes);
+app.use('/api/private', privateRoutes);
+app.use('/api/missions', missionRoutes);
+app.use('/api/alerts', alertRoutes);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+app.use(errorHandler);
+app.use('/api/commands', commandRoutes);
+app.use('/api/missions', require('./routes/missionRoutes'));
+app.use('/api/logs', require('./routes/logRoutes'));
+app.use('/api/drones', require('./routes/droneRoutes'));
+
+
 
 // Error handling middleware
 app.use(errorHandler);
@@ -38,4 +44,3 @@ sequelize.authenticate()
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch(err => console.error('DB Connection Error:', err));
-
