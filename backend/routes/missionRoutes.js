@@ -95,7 +95,7 @@ router.get('/', verifyToken, getMissions);
 
 // PUT /api/missions/:id
 // Update mission info
-router.put('/:id', verifyToken, updateMission);
+router.put('/:id', verifyToken, roleCheck('admin'), updateMission);
 
 // Export router to be used in server.js
 module.exports = router;
