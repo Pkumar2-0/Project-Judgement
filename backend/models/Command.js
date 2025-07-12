@@ -12,7 +12,7 @@ const Command = sequelize.define("Command", {
 
   // Type of command to send — must be one of the 3 defined options
   command: {
-    type: DataTypes.ENUM("abort", "reroute", "return"),
+    type: DataTypes.ENUM("abort", "reroute", "return", "move", "takeoff", "land"),
     allowNull: false, // Must be valid
   },
 
