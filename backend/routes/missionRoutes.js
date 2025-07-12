@@ -1,11 +1,125 @@
 /**
  * @swagger
- * /api/missions:
+ * tags:
+ *   name: Mission
+ *   description: Mission planning and control APIs
+ */
+
+const express = require('express');
+const router = express.Router();
+
+const {
+  createMission,
+  getMissions,
+  updateMission
+} = require('../controllers/missionController');
+
+const verifyToken = require('../middleware/verifyToken');
+const roleCheck = require('../middleware/roleCheck');
+const { missionValidationRules } = require('../validators/missionValidator');
+const validate = require('../middleware/validate');
+const { Mission } = require('../models');
+
+/**
+ * @swagger
+ * /api/v1/missions:
  *   post:
  *     summary: Create a new mission (admin only)
  *     tags: [Mission]
  *     security:
  *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - objective
+ *               - status
+ *               - assignedDrone
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: Operation Sentinel
+ *               objective:
+ *                 type: string
+ *                 example: Monitor Zone 5 for activity
+ *               status:
+ *                 type: string
+ *                 example: pending
+ *               assignedDrone:
+ *                 type: string
+ *                 example: DRN-001
+ *               waypoints:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     lat:
+ *                       type: number
+ *                       example: 22.57
+ *                     lng:
+ *                       type: number
+ *                       example: 88.36
+ *     responses:
+ *       201:
+ *         description: Mission created
+ *       403:
+ *         description: Unauthorized
+ */
+
+/**
+ * @swagger
+ * /api/v1/missions:
+ *   get:
+ *     summary: Get all missions
+ *     tags: [Mission]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of missions
+ *       403:
+ *         description: Unauthorized
+ */
+
+/**
+ * @swagger
+ * /api/v1/missions/{id}:
+ *   get:
+ *     summary: Get a mission by ID
+ *     tags: [Mission]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Mission details
+ *       404:
+ *         description: Mission not found
+ */
+
+/**
+ * @swagger
+ * /api/v1/missions/{id}:
+ *   put:
+ *     summary: Update a mission (admin only)
+ *     tags: [Mission]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
  *     requestBody:
  *       required: true
  *       content:
@@ -21,39 +135,59 @@
  *                 type: string
  *               assignedDrone:
  *                 type: string
+ *               waypoints:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     lat:
+ *                       type: number
+ *                     lng:
+ *                       type: number
  *     responses:
- *       201:
- *         description: Mission created
+ *       200:
+ *         description: Mission updated successfully
+ *       403:
+ *         description: Unauthorized
+ *       404:
+ *         description: Mission not found
  */
 
 /**
  * @swagger
- * /api/missions:
- *   get:
- *     summary: Get all missions
+ * /api/v1/missions/{id}:
+ *   delete:
+ *     summary: Delete a mission by ID (admin only)
  *     tags: [Mission]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
- *         description: List of missions
+ *         description: Mission deleted
+ *       404:
+ *         description: Mission not found
  */
 
-// Import necessary modules
-const express = require('express');
-const router = express.Router();
+// Route: POST /api/v1/missions
+router.post(
+  '/',
+  verifyToken,
+  roleCheck('admin'),
+  missionValidationRules,
+  validate,
+  createMission
+);
 
-// Import controller functions
-const { createMission, getMissions, updateMission } = require('../controllers/missionController');
+// Route: GET /api/v1/missions
+router.get('/', verifyToken, getMissions);
 
-// Import middleware
-const verifyToken = require('../middleware/verifyToken');     // Checks JWT
-const roleCheck = require('../middleware/roleCheck');         // Checks if role = 'admin'
-
-// Import Mission model for deletion
-const { Mission } = require('../models');
-
-// GET /api/missions/:id - Fetch a mission by its ID
+// Route: GET /api/v1/missions/:id
 router.get('/:id', verifyToken, async (req, res) => {
   try {
     const id = req.params.id;
@@ -69,9 +203,17 @@ router.get('/:id', verifyToken, async (req, res) => {
   }
 });
 
+// Route: PUT /api/v1/missions/:id
+router.put(
+  '/:id',
+  verifyToken,
+  roleCheck('admin'),
+  missionValidationRules,
+  validate,
+  updateMission
+);
 
-// DELETE /api/missions/:id
-// Deletes a mission by ID — only admin can perform this action
+// Route: DELETE /api/v1/missions/:id
 router.delete('/:id', verifyToken, roleCheck('admin'), async (req, res) => {
   try {
     const id = req.params.id;
@@ -85,17 +227,4 @@ router.delete('/:id', verifyToken, roleCheck('admin'), async (req, res) => {
   }
 });
 
-// POST /api/missions
-// Create new mission — only 'admin' can do this
-router.post('/', verifyToken, roleCheck('admin'), createMission);
-
-// GET /api/missions
-// Fetch all missions (any authenticated user can access)
-router.get('/', verifyToken, getMissions);
-
-// PUT /api/missions/:id
-// Update mission info
-router.put('/:id', verifyToken, roleCheck('admin'), updateMission);
-
-// Export router to be used in server.js
 module.exports = router;
