@@ -13,7 +13,8 @@ const Drone = sequelize.define('Drone', {
     allowNull: false,
   },
   gps: {
-    type: DataTypes.STRING,
+    type: DataTypes.JSON, // STRING if you're stringifying
+    allowNull: true
   },
   battery: {
     type: DataTypes.INTEGER,
