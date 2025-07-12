@@ -1,8 +1,15 @@
 /**
  * @swagger
- * /api/commands:
+ * tags:
+ *   name: Command
+ *   description: API to send commands to drones
+ */
+
+/**
+ * @swagger
+ * /api/v1/commands:
  *   post:
- *     summary: Send command to drone
+ *     summary: Send command to drone (admin only)
  *     tags: [Command]
  *     security:
  *       - bearerAuth: []
@@ -12,6 +19,9 @@
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - droneId
+ *               - command
  *             properties:
  *               droneId:
  *                 type: string
@@ -26,7 +36,7 @@
  *       400:
  *         description: Invalid command type
  *       403:
- *         description: Unauthorized or missing token
+ *         description: Unauthorized or insufficient permission
  *       500:
  *         description: Server error
  */
@@ -35,10 +45,10 @@ const express = require("express");
 const router = express.Router();
 
 const { sendCommand } = require("../controllers/commandController");
-const verifyToken = require("../middleware/verifyToken"); // Protect the route with JWT
+const verifyToken = require("../middleware/verifyToken");
+const roleCheck = require("../middleware/roleCheck"); // Add role check
 
-// POST /api/commands — Send command to a drone
-router.post("/", verifyToken, sendCommand);
+// Only admin can send drone commands
+router.post("/", verifyToken, roleCheck('admin'), sendCommand);
 
-// Export router to be mounted in server.js
 module.exports = router;
