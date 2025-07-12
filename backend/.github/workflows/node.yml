@@ -1,0 +1,38 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Move to backend folder
+        run: cd backend
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm install
+
+      - name: CI check success placeholder
+        working-directory: backend
+        run: echo "CI setup completed"
+
+      - name: Final message
+        run: echo "GitHub Actions working successfully!"
