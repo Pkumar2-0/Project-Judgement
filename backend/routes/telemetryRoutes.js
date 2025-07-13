@@ -63,7 +63,7 @@ const { Telemetry } = require('../models'); // Import model to fetch data
 router.post('/', verifyToken, receiveTelemetry);
 
 // Get latest telemetry for a drone
-router.get('/latest/:droneId', getLatestTelemetry); 
+router.get('/latest/:droneId',verifyToken, roleCheck('admin'), getLatestTelemetry); 
 
 
 // GET: only admin can view telemetry of drones
