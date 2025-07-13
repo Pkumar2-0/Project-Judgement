@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { receiveTelemetry } = require('../controllers/telemetryController');
+const { receiveTelemetry, getLatestTelemetry } = require('../controllers/telemetryController');
 const verifyToken = require('../middleware/verifyToken');
 const roleCheck = require('../middleware/roleCheck'); // Import roleCheck
 const { Telemetry } = require('../models'); // Import model to fetch data
@@ -61,6 +61,10 @@ const { Telemetry } = require('../models'); // Import model to fetch data
 
 // POST: any authenticated user (admin/operator) can send telemetry
 router.post('/', verifyToken, receiveTelemetry);
+
+// Get latest telemetry for a drone
+router.get('/latest/:droneId', getLatestTelemetry); 
+
 
 // GET: only admin can view telemetry of drones
 router.get('/:droneId', verifyToken, roleCheck('admin'), async (req, res) => {
