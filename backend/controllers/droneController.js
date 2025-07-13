@@ -24,11 +24,25 @@ exports.createDrone = async (req, res) => {
 
 
 // Get all drones
-exports.getDrones = async (req, res) => {
+exports.getDroneStatus = async (req, res) => {
   try {
-    const drones = await Drone.findAll();
-    res.status(200).json(drones);
+    const { droneId } = req.params;
+    const drone = await Drone.findOne({ where: { droneId } });
+
+    if (!drone) {
+      return res.status(404).json({ error: 'Drone not found' });
+    }
+
+    res.status(200).json({
+      id: drone.id,
+      droneId: drone.droneId,
+      model: drone.model,
+      status: drone.status,
+      battery: drone.battery,
+      gps_location: drone.gps, 
+      updatedAt: drone.updatedAt,
+    });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch drones' });
+    res.status(500).json({ error: 'Failed to fetch drone status' });
   }
 };
