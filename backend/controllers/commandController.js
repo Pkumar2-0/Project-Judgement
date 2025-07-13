@@ -29,3 +29,24 @@ exports.sendCommand = async (req, res) => {
     res.status(500).json({ error: "Failed to send command" });
   }
 };
+
+
+// Get all commands for a specific drone
+exports.getCommandsByDrone = async (req, res) => {
+  try {
+    const { droneId } = req.params;
+
+    const commands = await Command.findAll({
+      where: { droneId },
+      order: [['createdAt', 'DESC']]
+    });
+
+    if (!commands.length) {
+      return res.status(404).json({ error: 'No commands found for this drone' });
+    }
+
+    res.json(commands);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch commands' });
+  }
+};
