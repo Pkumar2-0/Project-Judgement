@@ -69,12 +69,12 @@ const express = require('express');
 const router = express.Router();
 const verifyToken = require('../middleware/verifyToken');
 const roleCheck = require('../middleware/roleCheck');
-const { createDrone, getDrones } = require('../controllers/droneController');
+const { createDrone, getDroneStatus } = require('../controllers/droneController');
 
 // Add drone — admin only
 router.post('/', verifyToken, roleCheck('admin'), createDrone);
 
 // View all drones — any authenticated user
-router.get('/', verifyToken, getDrones);
+router.get('/status/:droneId', verifyToken, getDroneStatus);
 
 module.exports = router;
