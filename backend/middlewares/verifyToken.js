@@ -1,27 +1,31 @@
-// Import the JWT library
 const jwt = require('jsonwebtoken');
+const { tokenBlacklist } = require('./tokenBlacklist'); // ✅ Path must be correct
 
-// Middleware to verify JWT token for protected routes
 function verifyToken(req, res, next) {
-  // Get the token from the Authorization header (format: "Bearer <token>")
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Split removes "Bearer "
 
-  // If no token provided, block the request
-  if (!token) return res.status(403).json({ error: 'No token provided' });
+  if (!authHeader) {
+    return res.status(401).json({ error: 'No authorization header provided' });
+  }
 
-  // Verify the token using secret from .env
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
+  const token = authHeader.split(' ')[1];
 
-    // If valid, attach user info (id, role, etc.) to request object
-    req.user = user;
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
 
-    // Proceed to next middleware or route
-    next();
-  });
+  // ✅ Check if token is blacklisted (revoked)
+  if (tokenBlacklist.has(token)) {
+    return res.status(403).json({ error: 'Token has been revoked' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded; // Attach decoded user info to request
+    next(); // Proceed to route/controller
+  } catch (err) {
+    return res.status(403).json({ error: 'Invalid or expired token' });
+  }
 }
 
-// Export the middleware function for reuse
 module.exports = verifyToken;
-
