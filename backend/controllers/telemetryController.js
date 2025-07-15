@@ -1,28 +1,45 @@
-// Import the Telemetry model
-const Telemetry = require('../models/Telemetry');
+const { Telemetry } = require('../models');
 
-// Controller to receive and store telemetry data
-// Route: POST /api/telemetry
-// This API is called by drones (or simulators) to send live sensor/position data
 exports.receiveTelemetry = async (req, res) => {
   try {
-    // Extract data from the request body
     const { droneId, gps, altitude, speed, battery } = req.body;
 
-    // Save the telemetry entry into the database
-    const entry = await Telemetry.create({
+    console.log('Received payload:', { droneId, gps, altitude, speed, battery });
+
+    // Save to database
+    const saved = await Telemetry.create({
       droneId,
       gps,
       altitude,
       speed,
-      battery,
+      battery
     });
 
-    // Return the stored entry as confirmation
-    res.status(201).json(entry);
-  } catch (error) {
-    // Handle unexpected server/database errors
+    if (!saved) {
+      throw new Error('Save failed');
+    }
+
+    // Manually format the saved data to return to Postman
+    const savedData = {
+      id: saved.id,
+      droneId: saved.droneId,
+      gps: saved.gps,
+      altitude: saved.altitude,
+      speed: saved.speed,
+      battery: saved.battery,
+      createdAt: saved.createdAt,
+      updatedAt: saved.updatedAt
+    };
+
+    console.log('Sending to Postman:', savedData);
+
+    res.status(201).json({
+      message: 'Telemetry saved successfully',
+      data: savedData
+    });
+
+  } catch (err) {
+    console.error('❌ Error saving telemetry:', err.message, err.stack);
     res.status(500).json({ error: 'Failed to save telemetry data' });
   }
 };
-
