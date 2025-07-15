@@ -1,10 +1,13 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(helmet());
+
 
 // DB connection
 const sequelize = require('./config/db');
@@ -23,6 +26,9 @@ const errorHandler = require('./middlewares/errorHandler');
 app.use('/api/auth', authRoutes);
 app.use('/api/telemetry', telemetryRoutes);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+app.get('/', (req, res) => {
+  res.send('✅ Secure Backend is Running over HTTPS');
+});
 
 // Error handling middleware
 app.use(errorHandler);
@@ -34,8 +40,21 @@ sequelize.authenticate()
     return sequelize.sync(); // Sync tables
   })
   .then(() => {
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    const https = require('https');
+const fs = require('fs');
+
+// Load SSL certificate and key
+const sslOptions = {
+  key: fs.readFileSync('server.key'),
+  cert: fs.readFileSync('server.cert')
+};
+
+const PORT = process.env.PORT || 5000;
+
+https.createServer(sslOptions, app).listen(PORT, () => {
+  console.log(`✅ Secure HTTPS server running on https://localhost:${PORT}`);
+});
+
   })
   .catch(err => console.error('DB Connection Error:', err));
 
