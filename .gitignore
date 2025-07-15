@@ -19,10 +19,16 @@ Thumbs.db
 .env
 .env.*
 
+# Ignore TLS certs 🔐
+backend/certs/
+*.key
+*.cert
+*.pem
+
 # Ignore coverage reports
 coverage/
 
-# Ignore build output (if any in the future)
+# Ignore build output (if any in the future)  
 build/
 dist/
 
