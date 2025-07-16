@@ -8,7 +8,10 @@ const Telemetry = sequelize.define('Telemetry', {
   droneId: DataTypes.STRING,
 
   // Current GPS location (latitude,longitude as string)
-  gps: DataTypes.STRING,
+  gps: {
+    type: DataTypes.JSON,  // true JSON type
+    allowNull: false
+  },
 
   // Drone's altitude in meters
   altitude: DataTypes.FLOAT,

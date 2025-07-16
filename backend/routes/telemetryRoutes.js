@@ -1,6 +1,14 @@
+const express = require('express');
+const router = express.Router();
+
+const { receiveTelemetry, getLatestTelemetry } = require('../controllers/telemetryController');
+const verifyToken = require('../middleware/verifyToken');
+const roleCheck = require('../middleware/roleCheck'); // Import roleCheck
+const { Telemetry } = require('../models'); // Import model to fetch data
+
 /**
  * @swagger
- * /api/telemetry:
+ * /api/v1/telemetry:
  *   post:
  *     summary: Submit telemetry data
  *     tags: [Telemetry]
@@ -28,40 +36,44 @@
  *         description: Telemetry saved
  */
 
-const express = require('express');
-const router = express.Router();
+/**
+ * @swagger
+ * /api/v1/telemetry/{droneId}:
+ *   get:
+ *     summary: Get latest telemetry data for a drone
+ *     tags: [Telemetry]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: droneId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the drone
+ *     responses:
+ *       200:
+ *         description: Telemetry data found
+ *       404:
+ *         description: No telemetry found for this drone
+ */
 
-const { receiveTelemetry } = require('../controllers/telemetryController');
-const verifyToken = require('../middlewares/verifyToken');
-const { Telemetry } = require('../models'); // Import model to fetch data
 
-// POST /api/telemetry
-// Save telemetry data sent from drone
+// POST: any authenticated user (admin/operator) can send telemetry
 router.post('/', verifyToken, receiveTelemetry);
 
-// GET /api/telemetry/drone-ids - Get all unique drone IDs
-router.get('/drone-ids', verifyToken, async (req, res) => {
-  try {
-    const droneIds = await Telemetry.findAll({
-      attributes: [
-        [require('sequelize').fn('DISTINCT', require('sequelize').col('droneId')), 'droneId']
-      ],
-      raw: true
-    });
-    res.json(droneIds.map(d => d.droneId));
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch drone IDs' });
-  }
-});
+// Get latest telemetry for a drone
+router.get('/latest/:droneId',verifyToken, roleCheck('admin'), getLatestTelemetry); 
 
-// GET /api/telemetry/:droneId - Get latest telemetry by drone ID
-router.get('/:droneId', verifyToken, async (req, res) => {
+
+// GET: only admin can view telemetry of drones
+router.get('/:droneId', verifyToken, roleCheck('admin'), async (req, res) => {
   try {
     const { droneId } = req.params;
 
     const data = await Telemetry.findOne({
       where: { droneId },
-      order: [['createdAt', 'DESC']] // get latest
+      order: [['createdAt', 'DESC']]
     });
 
     if (!data) {
@@ -74,5 +86,4 @@ router.get('/:droneId', verifyToken, async (req, res) => {
   }
 });
 
-// Export router to use in server.js
 module.exports = router;
